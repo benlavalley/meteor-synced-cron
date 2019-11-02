@@ -1,3 +1,37 @@
+#### Updates specific to this the ben repository...
+####
+#### 1) Updated with some options to allow for additional index creation.
+#### 2) Also supports defining a custom mongodb connection (I use an in-memory MongoDB I prefer to have synced-cron use).
+#### 3) Also updated with pre and post support for processing job entries. I have a scheme that uses synced-cron to detect timed out/zombie jobs, and to ensure a given Node instance only processes one job at a time.
+#### 4) I have a scheme I created to allow on-demand index creation, adding _suggestIndex prototype to Meteor collections. You'll see this checked for in the code. Will eventually turn into a Meteor package and add as a 'weak' dependency here...
+
+Sample of my config showcasing usage of the additional options.
+
+```
+SyncedCron.config({
+	additionalIndex: [
+		[{ meteorServerName: 1 }],
+		[{ serverDir: 1 }],
+		[{ name: 1 }],
+		[{ jobId: 1 }],
+		[{ heartbeatDate: 1 }],
+		[{ finishedAt: 1 }],
+		[{ restartedAt: 1 }],
+	],
+	customDB: inMemoryDB,
+	logger: MyLogger,
+	collectionTTL: 10800,
+	preProcessJobFunc(job) {
+		const startDate = new Date();
+		job.processing = startDate; // used by zombie killer
+		job.heartbeatDate = startDate; // init heartbeatDate
+	},
+	postProcessJobFunc(job) {
+		delete job.processing;
+	},
+});
+```
+
 # littledata:synced-cron
 
 A simple cron system for [Meteor](http://meteor.com). It supports syncronizing jobs between multiple processes. In other words, if you add a job that runs every hour and your deployment consists of multiple app servers, only one of the app servers will execute the job each time (whichever tries first).
