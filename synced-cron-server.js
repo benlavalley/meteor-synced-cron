@@ -151,6 +151,8 @@ SyncedCron.add = function (entry) {
 	check(entry.job, Function);
 	check(entry.persist, Match.Optional(Boolean));
 
+	entry.context = typeof entry.context === 'object' ? entry.context : {};
+
 	if (entry.persist === undefined) {
 		entry.persist = true;
 	}
@@ -227,6 +229,7 @@ SyncedCron._entryWrapper = function (entry) {
 		intendedAt.setMilliseconds(0);
 
 		let jobHistory;
+		const context = entry && entry.context;
 
 		if (entry.persist) {
 			jobHistory = {
@@ -234,6 +237,11 @@ SyncedCron._entryWrapper = function (entry) {
 				name: entry.name,
 				startedAt: new Date(),
 			};
+			if (context) {
+				_.each(context, function (value, key, obj) {
+					jobHistory[key] = value;
+				});
+			}
 
 			// If we have a dup key error, another instance has already tried to run
 			// this job.
@@ -257,7 +265,7 @@ SyncedCron._entryWrapper = function (entry) {
 			if (SyncedCron.options.preProcessJobFunc) { // I add some additional fields to the job which I use in my own sort of "zombie" job processing routine.
 				SyncedCron.options.preProcessJobFunc(entry);
 			}
-			const output = entry.job(intendedAt, entry.name); // <- Run the actual job
+			const output = entry.job(intendedAt, entry.name, jobHistory._id); // <- Run the actual job
 			if (SyncedCron.options.postProcessJobFunc) { // I add some additional fields to the job which I use in my own sort of "zombie" job processing routine.
 				SyncedCron.options.postProcessJobFunc(entry);
 			}
@@ -305,9 +313,9 @@ SyncedCron._laterSetInterval = function (fn, sched) {
 	let done = false;
 
 	/**
-  * Executes the specified function and then sets the timeout for the next
-  * interval.
-  */
+	 * Executes the specified function and then sets the timeout for the next
+	 * interval.
+	 */
 	function scheduleTimeout(intendedAt) {
 		if (!done) {
 			try {
@@ -323,8 +331,8 @@ SyncedCron._laterSetInterval = function (fn, sched) {
 	return {
 
 		/**
-    * Clears the timeout.
-    */
+		 * Clears the timeout.
+		 */
 		clear() {
 			done = true;
 			t.clear();
@@ -340,10 +348,10 @@ SyncedCron._laterSetTimeout = function (fn, sched) {
 	scheduleTimeout();
 
 	/**
-  * Schedules the timeout to occur. If the next occurrence is greater than the
-  * max supported delay (2147483647 ms) than we delay for that amount before
-  * attempting to schedule the timeout again.
-  */
+	 * Schedules the timeout to occur. If the next occurrence is greater than the
+	 * max supported delay (2147483647 ms) than we delay for that amount before
+	 * attempting to schedule the timeout again.
+	 */
 	function scheduleTimeout() {
 		const now = Date.now();
 		const next = s.next(2, now);
@@ -370,8 +378,8 @@ SyncedCron._laterSetTimeout = function (fn, sched) {
 	return {
 
 		/**
-    * Clears the timeout.
-    */
+		 * Clears the timeout.
+		 */
 		clear() {
 			Meteor.clearTimeout(t);
 		},
