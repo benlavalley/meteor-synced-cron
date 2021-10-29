@@ -3,7 +3,7 @@
 #### 1) Updated with some options to allow for additional index creation.
 #### 2) Also supports defining a custom mongodb connection (I use an in-memory MongoDB I prefer to have synced-cron use).
 #### 3) Also updated with pre and post support for processing job entries. I have a scheme that uses synced-cron to detect timed out/zombie jobs, and to ensure a given Node instance only processes one job at a time.
-#### 4) I have a scheme I created to allow on-demand index creation, adding _suggestIndex prototype to Meteor collections. You'll see this checked for in the code. Will eventually turn into a Meteor package and add as a 'weak' dependency here...
+#### 4) I have a scheme I created to allow on-demand index creation, adding createIndex prototype to Meteor collections. You'll see this checked for in the code. Will eventually turn into a Meteor package and add as a 'weak' dependency here...
 
 Sample of my config showcasing usage of the additional options.
 
@@ -126,7 +126,7 @@ You can configure SyncedCron with the `config` method. Defaults are:
       NOTE: Unset to remove expiry but ensure you remove the index from
       mongo by hand
 
-      ALSO: SyncedCron can't use the `_ensureIndex` command to modify
+      ALSO: SyncedCron can't use the `createIndex` command to modify
       the TTL index. The best way to modify the default value of
       `collectionTTL` is to remove the index by hand (in the mongo shell
       run `db.cronHistory.dropIndex({startedAt: 1})`) and re-run your

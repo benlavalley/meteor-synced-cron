@@ -90,10 +90,10 @@ Meteor.startup(function () {
 	} else {
 		SyncedCron._collection = new Mongo.Collection(options.collectionName);
 	}
-	if (SyncedCron._collection._suggestIndex) {
-		SyncedCron._collection._suggestIndex({ intendedAt: 1, name: 1 }, { unique: true }, 'force');
+	if (SyncedCron._collection.createIndex) {
+		SyncedCron._collection.createIndex({ intendedAt: 1, name: 1 }, { unique: true }, 'force');
 	} else {
-		SyncedCron._collection._ensureIndex({ intendedAt: 1, name: 1 }, { unique: true });
+		SyncedCron._collection.createIndex({ intendedAt: 1, name: 1 }, { unique: true });
 	}
 	// we can define additional indexes with our configuration.
 	if (options.additionalIndex) {
@@ -105,16 +105,16 @@ Meteor.startup(function () {
 		}
 		_.each(createIndexes, function (indexes) {
 			if (_.isArray(indexes)) {
-				if (SyncedCron._collection._suggestIndex) {
-					SyncedCron._collection._suggestIndex(indexes[0], indexes[1], 'force');
+				if (SyncedCron._collection.createIndex) {
+					SyncedCron._collection.createIndex(indexes[0], indexes[1], 'force');
 				} else {
-					SyncedCron._collection._ensureIndex(indexes[0], indexes[1]);
+					SyncedCron._collection.createIndex(indexes[0], indexes[1]);
 				}
 			} else {
-				if (SyncedCron._collection._suggestIndex) {
-					SyncedCron._collection._suggestIndex(indexes, 'force');
+				if (SyncedCron._collection.createIndex) {
+					SyncedCron._collection.createIndex(indexes, 'force');
 				} else {
-					SyncedCron._collection._ensureIndex(indexes);
+					SyncedCron._collection.createIndex(indexes);
 				}
 			}
 		});
@@ -122,10 +122,10 @@ Meteor.startup(function () {
 
 	if (options.collectionTTL) {
 		if (options.collectionTTL > minTTL) {
-			if (SyncedCron._collection._suggestIndex) {
-				SyncedCron._collection._suggestIndex({ startedAt: 1 }, { expireAfterSeconds: options.collectionTTL }, 'force');
+			if (SyncedCron._collection.createIndex) {
+				SyncedCron._collection.createIndex({ startedAt: 1 }, { expireAfterSeconds: options.collectionTTL }, 'force');
 			} else {
-				SyncedCron._collection._ensureIndex({ startedAt: 1 }, { expireAfterSeconds: options.collectionTTL });
+				SyncedCron._collection.createIndex({ startedAt: 1 }, { expireAfterSeconds: options.collectionTTL });
 			}
 		} else log.warn(`Not going to use a TTL that is shorter than:${minTTL}`);
 	}
